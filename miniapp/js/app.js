@@ -170,6 +170,7 @@ function showSection(sectionId) {
     if (sectionId === "prizes") renderPrizes();
 }
 
+// MODIFICATA: per usare addEventListener invece di onclick inline per compatibilità CSP
 function renderGames() {
     const container = document.getElementById("games-list");
     container.innerHTML = "";
@@ -178,18 +179,23 @@ function renderGames() {
     games.forEach(game => {
         const card = document.createElement("div");
         card.className = "game-card";
-        let playButtonHtml;
+        
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "game-title";
+        titleDiv.textContent = game.title[currentLang];
+        card.appendChild(titleDiv);
+
+        const playButton = document.createElement("button");
+        playButton.className = "play-btn";
+        playButton.textContent = translations[currentLang].play;
 
         if (game.type === 'quiz') {
-            playButtonHtml = `<button class="play-btn" onclick="playQuiz('${game.quizSheet}')">${translations[currentLang].play}</button>`;
+            playButton.addEventListener('click', () => playQuiz(game.quizSheet));
         } else {
-            playButtonHtml = `<button class="play-btn" onclick="playGame(${game.id})">${translations[currentLang].play}</button>`;
+            playButton.addEventListener('click', () => playGame(game.id));
         }
-
-        card.innerHTML = `
-            <div class="game-title">${game.title[currentLang]}</div>
-            ${playButtonHtml}
-        `;
+        card.appendChild(playButton);
+        
         container.appendChild(card);
     });
 }
@@ -209,11 +215,21 @@ function renderPrizes() {
     prizes.forEach(prize => {
         const card = document.createElement("div");
         card.className = "prize-card";
-        card.innerHTML = `
-            <div class="prize-title">${prize.title[currentLang]}</div>
-            <p>⭐ ${prize.cost}</p>
-            <button onclick="requestPrize(${prize.id})">${translations[currentLang].prizeReq}</button>
-        `;
+        
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "prize-title";
+        titleDiv.textContent = prize.title[currentLang];
+        card.appendChild(titleDiv);
+
+        const costP = document.createElement("p");
+        costP.textContent = `⭐ ${prize.cost}`;
+        card.appendChild(costP);
+
+        const requestButton = document.createElement("button");
+        requestButton.textContent = translations[currentLang].prizeReq;
+        requestButton.addEventListener('click', () => requestPrize(prize.id));
+        card.appendChild(requestButton);
+        
         container.appendChild(card);
     });
     // Logica per leggere i dati dal foglio 'shop' andrà qui in futuro
@@ -612,7 +628,7 @@ async function submitQuizResult(quizSheet, finalScore, totalQuestions, userId, u
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".btn-nav").forEach(btn => {
         btn.textContent = translations[currentLang][btn.dataset.section];
-        btn.addEventListener("click", () => showSection(btn.dataset.section));
+        btn.addEventListener("click", () => showSection(btn.dataset.section)); // Usa addEventListener
     });
 
     document.getElementById("lang-select").addEventListener("change", (e) => {
