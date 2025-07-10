@@ -1,5 +1,5 @@
 // *** IL TUO URL DI DEPLOYMENT ESATTO DEL GOOGLE APPS SCRIPT ***
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbxk0gSMb81D7b4pdh8hXruvlFwuFRiJGB74XUAxjRVstEmtTwSR6CE_ExIKv0d9De5wBw/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbzozQ-WtW4DhrhFyqyZDTsoqkbcQUDAQxi98k2YZ2YCDGi2mxj4wQIUE9FMWdme-HZqkQ/exec';
 
 // --- Traduzioni per la navigazione e le sezioni ---
 const translations = {
