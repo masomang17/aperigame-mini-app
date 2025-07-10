@@ -124,45 +124,57 @@ nav {
     text-align: center;
 }
 
-/* Lista dei Premi */
-.prizes-list {
-    display: grid;
-    /* --- MODIFICA: Forza una griglia a 2 colonne --- */
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 15px;
-    padding-bottom: 20px;
+/* --- SEZIONE CARD CORRETTA --- */
+
+/* Stili comuni a tutte le card */
+.game-card, .prize-card {
+    background: var(--bg-medium);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 0 10px var(--box-shadow-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 125px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.game-card:hover, .prize-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px var(--box-shadow-color);
+}
+
+/* Stile specifico per la card singola "Gioca Ora" (in Quiz e Tip) */
+.game-card {
+    cursor: pointer;
+    user-select: none;
+    /* Imposta una larghezza per evitare che si allarghi a tutto schermo */
+    width: 60%;
+    max-width: 220px;
+}
+
+/* Stile specifico per le card dei premi (nello Shop) */
+.prize-card {
+    /* Nessuna larghezza specifica, sarà la griglia a deciderla */
+}
+
+/* Contenitore per la card singola (Quiz/Tip) per centrarla */
 .content-container {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Card dei Premi e dei Giochi */
-.game-card, .prize-card {
-    background: var(--bg-medium);
-    border-radius: 12px;
-    /* --- MODIFICA: Ridotto il padding --- */
-    padding: 12px;
-    text-align: center;
-    box-shadow: 0 0 10px var(--box-shadow-color);
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    /* --- MODIFICA: Ridotta l'altezza minima per renderle più compatte --- */
-    min-height: 125px; 
+/* Contenitore a griglia per i premi (Shop) */
+.prizes-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px;
+    padding-bottom: 20px;
 }
 
-
-.game-card:hover, .prize-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px var(--box-shadow-color);
-}
-
+/* Titoli e testo dentro le card */
 .game-title, .prize-title {
     font-weight: 700;
     margin-bottom: 10px;
