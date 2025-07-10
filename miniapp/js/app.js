@@ -1,0 +1,636 @@
+// *** IL TUO URL DI DEPLOYMENT ESATTO DEL GOOGLE APPS SCRIPT ***
+const BASE_QUIZ_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzIl0NH1EoSZydPjeBpZj1c7Y9hFjZPLOkhymNvZpPcRip5eMXXzX0M3GbDjMCGqhic3w/exec';
+
+const translations = {
+    it: {
+        home: "Home",
+        profile: "Profilo",
+        prizes: "Premi",
+        welcome: "Benvenuto su Aperigame!",
+        games: "Giochi Disponibili",
+        stars: "Stelle",
+        prizesList: "Catalogo Premi",
+        play: "Gioca",
+        user: "Utente",
+        noStars: "0",
+        prizeReq: "Richiedi premio",
+        quizPrizeText: "Premio per il quiz: ",
+        quizExit: "Esci dal quiz",
+        quizScore: "Hai totalizzato",
+        quizPoints: "punti su",
+        quizTimeUp: "Tempo scaduto! Punteggio 0 per questa domanda.",
+        quizNext: "Domanda successiva",
+        quizFinish: "Fine quiz!",
+        loadingQuiz: "Caricamento quiz...",
+        quizLoadError: "Errore nel caricamento del quiz. Controlla la tua connessione o riprova più tardi.",
+        notEnoughStars: "Non hai abbastanza stelle per questo premio.",
+        prizeSuccess: "Premio '{prizeTitle}' richiesto con successo!",
+        gameEarned: "Hai guadagnato",
+        quizDataMissing: "Dati quiz non disponibili per questa lingua o quiz.",
+        answerRecorded: "La tua risposta è stata registrata. I risultati di questo quiz verranno pubblicati successivamente!",
+    },
+    en: {
+        home: "Home",
+        profile: "Profile",
+        prizes: "Prizes",
+        welcome: "Welcome to Aperigame!",
+        games: "Available Games",
+        stars: "Stars",
+        prizesList: "Prize Catalog",
+        play: "Play",
+        user: "User",
+        noStars: "0",
+        prizeReq: "Request Prize",
+        quizPrizeText: "Prize for the quiz: ",
+        quizExit: "Exit quiz",
+        quizScore: "You scored",
+        quizPoints: "points out of",
+        quizTimeUp: "Time's up! Zero points for this question.",
+        quizNext: "Next question",
+        quizFinish: "Quiz finished!",
+        loadingQuiz: "Loading quiz...",
+        quizLoadError: "Error loading quiz. Please try again later.",
+        notEnoughStars: "You don't have enough stars for this prize.",
+        prizeSuccess: "Prize '{prizeTitle}' requested successfully!",
+        gameEarned: "You earned",
+        quizDataMissing: "Quiz data not available for this language or quiz.",
+        answerRecorded: "Your answer has been recorded. Quiz results will be published later!",
+    },
+    es: {
+        home: "Inicio",
+        profile: "Perfil",
+        prizes: "Premios",
+        welcome: "¡Bienvenido a Aperigame!",
+        games: "Juegos Disponibles",
+        stars: "Estrellas",
+        prizesList: "Catálogo de Premios",
+        play: "Jugar",
+        user: "Usuario",
+        noStars: "0",
+        prizeReq: "Solicitar Premio",
+        quizPrizeText: "Premio para el quiz: ",
+        quizExit: "Salir del quiz",
+        quizScore: "Has conseguido",
+        quizPoints: "puntos de",
+        quizTimeUp: "¡Tiempo agotado! 0 puntos para esta pregunta.",
+        quizNext: "Siguiente pregunta",
+        quizFinish: "¡Fin del quiz!",
+        loadingQuiz: "Cargando quiz...",
+        quizLoadError: "Error al cargar el quiz. Inténtalo de nuevo de nuevo más tarde.",
+        notEnoughStars: "No tienes suficientes estrellas para este premio.",
+        prizeSuccess: "¡Premio '{prizeTitle}' solicitado con éxito!",
+        gameEarned: "Has ganado",
+        quizDataMissing: "Datos del quiz no disponibles para este idioma o quiz.",
+        answerRecorded: "¡Tu respuesta ha sido registrada. Los resultados de este quiz se publicarán más tarde!",
+    }
+};
+
+// Variabili per l'utente Telegram
+let telegramUserId = null;
+let telegramUsername = null;
+let telegramFirstName = null;
+let telegramLastName = null;
+
+// Inizializzazione dell'SDK di Telegram Web App
+if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.ready();
+    telegramUserId = Telegram.WebApp.initDataUnsafe.user?.id || null;
+    telegramUsername = Telegram.WebApp.initDataUnsafe.user?.username || null;
+    telegramFirstName = Telegram.WebApp.initDataUnsafe.user?.first_name || null;
+    telegramLastName = Telegram.WebApp.initDataUnsafe.user?.last_name || null;
+    
+    // Aggiorna il nome utente visualizzato nel profilo
+    if (telegramUsername) {
+        username = `@${telegramUsername}`;
+    } else if (telegramFirstName) {
+        username = telegramFirstName;
+        if (telegramLastName) {
+            username += ` ${telegramLastName}`;
+        }
+    } else {
+        username = "Utente Telegram"; // Fallback se non ci sono dati nome
+    }
+} else {
+    console.warn("Telegram WebApp SDK non disponibile. L'app potrebbe non funzionare correttamente in un browser standard. Usando dati di test.");
+    telegramUserId = "test_user_123";
+    username = "TestUser";
+    telegramFirstName = "Test";
+    telegramLastName = "User";
+}
+
+let starsCount = 0;
+
+// Definizione dei giochi con i nomi delle schede corrispondenti nel Google Sheet
+const games = [
+    { id: 1, title: { it: "Memory", en: "Memory", es: "Memoria" }, starsReward: 5, type: "static" },
+    { id: 2, title: { it: "Quiz Generale", en: "General Quiz", es: "Quiz General" }, starsReward: 0, type: "quiz", quizSheet: "quiz" }, // Corrisponde alla scheda 'quiz'
+    { id: 3, title: { it: "Puzzle", en: "Puzzle", es: "Rompecabezas" }, starsReward: 4, type: "static" },
+    { id: 4, title: { it: "Quiz Storia", en: "History Quiz", es: "Quiz Historia" }, starsReward: 0, type: "quiz", quizSheet: "Quiz Storia" }, // Esempio: Corrisponde a 'Quiz Storia'
+    { id: 5, title: { it: "Quiz delle Categorie", en: "Categories Quiz", es: "Quiz de Categorías" }, starsReward: 0, type: "quiz", quizSheet: "tip" }, // Corrisponde alla scheda 'tip'
+];
+
+const prizes = [
+    { id: 1, title: { it: "10% di sconto", en: "10% Discount", es: "10% de descuento" }, cost: 10 },
+    { id: 2, title: { it: "Gioco Bonus", en: "Bonus Game", es: "Bonus Game" }, cost: 15 },
+    { id: 3, title: { it: "Accesso VIP", en: "VIP Access", es: "Acceso VIP" }, cost: 25 }
+];
+
+let quizConfig = {
+    questions: {}, // Qui memorizzeremo le domande per ogni quizSheet (es. questions['Quiz Sport']['it'])
+    titles: {},    // Titoli per ogni quizSheet
+    prize: "Buono da 5€ per aperitivo" // Premio di default se non specificato nel foglio
+};
+
+let quizState = {
+    currentIndex: 0,
+    score: 0,
+    timer: null,
+    timeLeft: 0,
+    timePerQuestion: 15,
+    answeringAllowed: true,
+    currentQuizSheet: null // Tiene traccia della scheda quiz corrente
+};
+
+// --- Funzioni UI Generali ---
+
+function showSection(sectionId) {
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+    document.getElementById(sectionId).classList.add("active");
+
+    document.querySelectorAll(".btn-nav").forEach(btn => btn.classList.toggle("active", btn.dataset.section === sectionId));
+
+    if (sectionId === "home") {
+        renderGames();
+        if (quizState.timer) { // Interrompi il timer se si esce dal quiz
+            clearInterval(quizState.timer);
+            quizState.timer = null;
+        }
+    }
+    if (sectionId === "profile") renderProfile();
+    if (sectionId === "prizes") renderPrizes();
+}
+
+function renderGames() {
+    const container = document.getElementById("games-list");
+    container.innerHTML = "";
+    document.querySelector("#home h2").textContent = translations[currentLang].games;
+
+    games.forEach(game => {
+        const card = document.createElement("div");
+        card.className = "game-card";
+        let playButtonHtml;
+
+        if (game.type === 'quiz') {
+            playButtonHtml = `<button class="play-btn" onclick="playQuiz('${game.quizSheet}')">${translations[currentLang].play}</button>`;
+        } else {
+            playButtonHtml = `<button class="play-btn" onclick="playGame(${game.id})">${translations[currentLang].play}</button>`;
+        }
+
+        card.innerHTML = `
+            <div class="game-title">${game.title[currentLang]}</div>
+            ${playButtonHtml}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderProfile() {
+    document.querySelector("#profile h2").textContent = translations[currentLang].profile;
+    document.getElementById("profile-user").textContent = `${translations[currentLang].user}: ${username}`;
+    document.getElementById("stars-count").textContent = starsCount || translations[currentLang].noStars;
+    // Logica per leggere i dati dal foglio 'profile' andrà qui in futuro
+}
+
+function renderPrizes() {
+    const container = document.getElementById("prizes-list");
+    container.innerHTML = "";
+    document.querySelector("#prizes h2").textContent = translations[currentLang].prizesList;
+
+    prizes.forEach(prize => {
+        const card = document.createElement("div");
+        card.className = "prize-card";
+        card.innerHTML = `
+            <div class="prize-title">${prize.title[currentLang]}</div>
+            <p>⭐ ${prize.cost}</p>
+            <button onclick="requestPrize(${prize.id})">${translations[currentLang].prizeReq}</button>
+        `;
+        container.appendChild(card);
+    });
+    // Logica per leggere i dati dal foglio 'shop' andrà qui in futuro
+}
+
+function playGame(gameId) {
+    const game = games.find(g => g.id === gameId);
+    if (game) {
+        starsCount += game.starsReward;
+        alert(`${translations[currentLang].play} ${game.title[currentLang]}! ${translations[currentLang].gameEarned} ${game.starsReward} ⭐`);
+        renderProfile();
+    }
+}
+
+function requestPrize(prizeId) {
+    const prize = prizes.find(p => p.id === prizeId);
+    if (prize) {
+        if (starsCount >= prize.cost) {
+            starsCount -= prize.cost;
+            const successMsg = translations[currentLang].prizeSuccess.replace('{prizeTitle}', prize.title[currentLang]);
+            alert(successMsg);
+            renderProfile();
+            // Logica per registrare richiesta premio nel foglio 'shop' o 'profile' in futuro
+        } else {
+            alert(translations[currentLang].notEnoughStars);
+        }
+    }
+}
+
+// --- Funzioni Quiz ---
+
+/**
+ * Carica i dati del quiz dal Google Sheet per la scheda specificata.
+ * Mostra un messaggio di caricamento e gestisce gli errori.
+ * @param {string} quizSheet Il nome della scheda del quiz nel Google Sheet.
+ * @returns {Promise<void>} Una Promise che si risolve quando i dati sono caricati.
+ */
+async function loadAndProcessQuizData(quizSheet) {
+    const gameButton = document.querySelector(`button[onclick="playQuiz('${quizSheet}')"]`);
+    if (gameButton) {
+        gameButton.textContent = translations[currentLang].loadingQuiz;
+        gameButton.disabled = true;
+    }
+
+    try {
+        const response = await fetch(`${BASE_QUIZ_SHEET_URL}?quiz_name=${encodeURIComponent(quizSheet)}`);
+        if (!response.ok) {
+            throw new Error(`Errore di rete: ${response.statusText} (${response.status})`);
+        }
+        const rawData = await response.json();
+
+        if (rawData.error) {
+            throw new Error(`Errore da Google Apps Script: ${rawData.error}`);
+        }
+
+        if (!quizConfig.questions[quizSheet]) {
+            quizConfig.questions[quizSheet] = {};
+            quizConfig.titles[quizSheet] = {};
+        }
+
+        const groupedQuestions = {};
+        rawData.forEach(item => {
+            const lang = item.lang;
+            if (!groupedQuestions[lang]) groupedQuestions[lang] = [];
+
+            const questionText = String(item.question || '').toLowerCase().trim();
+
+            if (questionText === "title") {
+                quizConfig.titles[quizSheet][lang] = item.answer_1;
+            } else if (questionText === "prize") {
+                quizConfig.prize = String(item.answer_1 || '').trim() !== "" ? item.answer_1 : quizConfig.prize;
+            } else {
+                const answers = [item.answer_1, item.answer_2, item.answer_3, item.answer_4].filter(a => a && String(a).trim() !== "");
+                const correctIdx = parseInt(item.correct_index, 10);
+                const timerSec = parseInt(item.time_sec, 10); // Usa 'time_sec' come da tua intestazione
+
+                groupedQuestions[lang].push({
+                    question: item.question,
+                    answers: answers,
+                    // Correzione per indice 1-based (sottrae 1), 0 per quiz 1X2 senza risposta immediata
+                    correctIndex: !isNaN(correctIdx) && correctIdx >= 0 && correctIdx <= answers.length ? correctIdx - 1 : 0, 
+                    points: parseInt(item.points, 10) || 0, // Punti per domanda
+                    timer: !isNaN(timerSec) && timerSec > 0 ? timerSec : quizState.timePerQuestion,
+                    imageUrl: item.image_url || null, 
+                    explanation: item.explanation || null,
+                    difficulty: item.difficulty || null
+                });
+            }
+        });
+        quizConfig.questions[quizSheet] = groupedQuestions;
+        console.log(`Dati quiz '${quizSheet}' caricati con successo.`, quizConfig.questions[quizSheet]);
+
+    } catch (error) {
+        console.error(`Errore durante il caricamento o elaborazione del quiz '${quizSheet}':`, error);
+        alert(translations[currentLang].quizLoadError);
+        throw error; // Rilancia l'errore per gestirlo nel chiamante (playQuiz)
+    } finally {
+        if (gameButton) {
+            gameButton.textContent = translations[currentLang].play;
+            gameButton.disabled = false;
+        }
+    }
+}
+
+
+/**
+ * Avvia il quiz per il foglio specificato.
+ * @param {string} quizSheet Il nome della scheda del quiz nel Google Sheet.
+ */
+async function playQuiz(quizSheet) {
+    quizState.currentQuizSheet = quizSheet;
+
+    // Se i dati per questo quiz non sono ancora caricati, prova a caricarli
+    if (!quizConfig.questions[quizSheet] || !quizConfig.questions[quizSheet][currentLang]) {
+        try {
+            await loadAndProcessQuizData(quizSheet);
+        } catch (error) {
+            console.error("Fallito l'avvio del quiz a causa di errore di caricamento.");
+            return; // Interrompi se il caricamento fallisce
+        }
+    }
+
+    const questions = quizConfig.questions[quizSheet]?.[currentLang];
+    if (!questions || questions.length === 0) {
+        alert(translations[currentLang].quizDataMissing);
+        console.warn(`Nessuna domanda disponibile per il quiz '${quizSheet}' in lingua '${currentLang}'.`);
+        return;
+    }
+
+    // Reset dello stato del quiz e avvio
+    quizState.currentIndex = 0;
+    quizState.score = 0;
+    clearInterval(quizState.timer);
+    showQuizQuestion();
+}
+
+function showQuizQuestion() {
+    const questions = quizConfig.questions[quizState.currentQuizSheet]?.[currentLang] || [];
+
+    if (quizState.currentIndex >= questions.length) {
+        showQuizResult();
+        return;
+    }
+
+    const q = questions[quizState.currentIndex];
+    clearInterval(quizState.timer);
+
+    const quizTitle = quizConfig.titles[quizState.currentQuizSheet]?.[currentLang] || "Quiz";
+    const quizPrize = quizConfig.prize; // Il premio è globale per ora
+
+    const container = document.getElementById("games-list");
+    container.innerHTML = `
+        <div class="quiz-container">
+            <h3>${quizTitle}</h3>
+            <p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizPrize}</p>
+            ${q.imageUrl ? `<img src="${q.imageUrl}" alt="Quiz Image" class="quiz-image">` : ''}
+            <div id="quiz-timer" class="quiz-timer"></div>
+            <p><strong>${q.question}</strong></p>
+            <div id="quiz-answers" class="quiz-answers"></div>
+            <button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button>
+        </div>
+    `;
+
+    document.getElementById("quiz-exit").onclick = () => {
+        clearInterval(quizState.timer);
+        showQuizResult(true);
+    };
+
+    const answersDiv = document.getElementById("quiz-answers");
+    q.answers.forEach((ans, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = ans;
+        btn.className = "btn-quiz";
+        btn.onclick = () => handleAnswer(i);
+        answersDiv.appendChild(btn);
+    });
+
+    quizState.timeLeft = q.timer;
+    quizState.answeringAllowed = true;
+    updateTimerUI();
+
+    quizState.timer = setInterval(() => {
+        quizState.timeLeft--;
+        updateTimerUI();
+        if (quizState.timeLeft <= 0) {
+            clearInterval(quizState.timer);
+            if (quizState.answeringAllowed) {
+                quizState.answeringAllowed = false;
+                alert(translations[currentLang].quizTimeUp);
+                
+                // Se è un quiz a esito immediato (correct_index non 0), mostra la risposta corretta
+                if (q.correctIndex !== 0) { 
+                    highlightAnswer(q.correctIndex, 'btn-correct');
+                } 
+
+                setTimeout(() => {
+                    // Mostra la spiegazione solo per quiz con esito immediato e se esiste
+                    if (q.explanation && q.correctIndex !== 0) {
+                        alert(`Spiegazione: ${q.explanation}`);
+                    }
+                    nextQuizQuestion();
+                }, 1500);
+            }
+        }
+    }, 1000);
+}
+
+function updateTimerUI() {
+    const timerDiv = document.getElementById("quiz-timer");
+    if (timerDiv) {
+        timerDiv.textContent = `⏳ ${quizState.timeLeft}s`;
+    }
+}
+
+function handleAnswer(selectedIndex) {
+    if (!quizState.answeringAllowed) return;
+
+    quizState.answeringAllowed = false;
+    clearInterval(quizState.timer);
+
+    const questions = quizConfig.questions[quizState.currentQuizSheet]?.[currentLang] || [];
+    const q = questions[quizState.currentIndex];
+    const buttons = document.querySelectorAll("#quiz-answers button");
+
+    buttons.forEach(btn => btn.disabled = true); // Disabilita tutti i bottoni dopo la risposta
+
+    // Un quiz è a "risultato immediato" se `correct_index` nel foglio è diverso da 0
+    const isImmediateResultQuiz = (q.correctIndex !== 0);
+    let isCorrect = false;
+    let pointsAwarded = 0;
+
+    if (isImmediateResultQuiz) {
+        isCorrect = (selectedIndex === q.correctIndex);
+        if (isCorrect) {
+            quizState.score += q.points || 0; // Aggiunge i punti specifici della domanda
+            pointsAwarded = q.points || 0;
+            highlightAnswer(selectedIndex, 'btn-correct');
+        } else {
+            highlightAnswer(selectedIndex, 'btn-wrong');
+            highlightAnswer(q.correctIndex, 'btn-correct'); // Evidenzia anche la risposta giusta
+        }
+    } else {
+        // Logica per quiz 1X2: nessuna valutazione immediata
+        alert(translations[currentLang].answerRecorded);
+        highlightAnswer(selectedIndex, 'btn-selected-1x2'); // Colora il bottone selezionato
+        isCorrect = false; // Non è corretto/sbagliato al momento
+        pointsAwarded = 0; // Nessun punto immediato
+    }
+
+    // Invia i dati della risposta al Google Apps Script
+    submitAnswerData(
+        quizState.currentQuizSheet,
+        quizState.currentIndex,
+        selectedIndex,
+        q.correctIndex, // Questo sarà 0 per i quiz 1X2
+        isCorrect,      // False per 1X2, True/False per quiz immediati
+        pointsAwarded,  // Punti assegnati per questa specifica risposta
+        telegramUserId,
+        telegramUsername,
+        telegramFirstName,
+        telegramLastName
+    );
+
+    setTimeout(() => {
+        // Mostra la spiegazione solo per quiz con esito immediato e se esiste
+        if (q.explanation && isImmediateResultQuiz) {
+            alert(`Spiegazione: ${q.explanation}`);
+        }
+        nextQuizQuestion();
+    }, 1500);
+}
+
+function highlightAnswer(index, className) {
+    const buttons = document.querySelectorAll("#quiz-answers button");
+    if (index >= 0 && index < buttons.length) {
+        buttons[index].classList.add(className);
+    }
+}
+
+function nextQuizQuestion() {
+    quizState.currentIndex++;
+    showQuizQuestion();
+}
+
+function showQuizResult(exitedEarly = false) {
+    const container = document.getElementById("games-list");
+    const totalQuestions = (quizConfig.questions[quizState.currentQuizSheet]?.[currentLang] || []).length;
+    let message;
+
+    if (exitedEarly) {
+        message = `${translations[currentLang].quizScore} ${quizState.score} ${translations[currentLang].quizPoints} ${totalQuestions}.`;
+        message += `<br>${translations[currentLang].quizExit}`;
+    } else {
+        message = `${translations[currentLang].quizScore} ${quizState.score} ${translations[currentLang].quizPoints} ${totalQuestions}.`;
+    }
+
+    container.innerHTML = `
+        <div class="quiz-container">
+            <h3>${translations[currentLang].quizFinish}</h3>
+            <p>${translations[currentLang].quizPrizeText} ${quizConfig.prize}</p>
+            <p>${message}</p>
+            <button class="play-btn" onclick="showSection('home')">${translations[currentLang].quizExit}</button>
+        </div>
+    `;
+    clearInterval(quizState.timer);
+    // Invia il risultato finale del quiz al Google Apps Script
+    submitQuizResult(
+        quizState.currentQuizSheet,
+        quizState.score,
+        totalQuestions,
+        telegramUserId,
+        telegramUsername,
+        telegramFirstName,
+        telegramLastName
+    );
+
+    quizState.currentQuizSheet = null; // Resetta il quiz corrente
+}
+
+/**
+ * Funzione generica per inviare dati via POST al Google Apps Script.
+ * @param {object} data I dati da inviare (incluso il campo 'action').
+ */
+async function sendDataToScript(data) {
+    if (!telegramUserId) {
+        console.warn("Invio dati: User ID non disponibile. Assicurati che l'app sia eseguita in Telegram.");
+        return { status: "error", message: "User ID non disponibile." };
+    }
+    
+    try {
+        const response = await fetch(BASE_QUIZ_SHEET_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(data).toString()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.statusText} (${response.status})`);
+        }
+        const result = await response.json();
+        return result; 
+    } catch (error) {
+        console.error(`Errore di rete/server nell'invio dati (Action: ${data.action || 'N/A'}):`, error);
+        return { status: "error", message: `Errore nell'invio dei dati: ${error.message}` };
+    }
+}
+
+async function submitAnswerData(quizSheet, questionIndex, selectedAnswerIndex, correctAnswerIndex, isCorrect, pointsAwarded, userId, userName, firstName, lastName) {
+    const data = {
+        action: "submitAnswer",
+        quizSheet,
+        questionIndex,
+        selectedAnswerIndex,
+        correctAnswerIndex,
+        isCorrect,
+        pointsAwarded, 
+        userId,
+        userName,
+        firstName,     
+        lastName,      
+        timestamp: new Date().toISOString()
+    };
+    const result = await sendDataToScript(data);
+    if (result.status === "success") {
+        console.log("Dati risposta inviati con successo:", result.message);
+    } else {
+        console.error("Errore nell'invio dei dati risposta:", result.message);
+    }
+}
+
+async function submitQuizResult(quizSheet, finalScore, totalQuestions, userId, userName, firstName, lastName) {
+    const data = {
+        action: "submitResult",
+        quizSheet,
+        finalScore,
+        totalQuestions,
+        userId,
+        userName,
+        firstName,     
+        lastName,      
+        timestamp: new Date().toISOString()
+    };
+    const result = await sendDataToScript(data);
+    if (result.status === "success") {
+        console.log("Risultato quiz finale inviato con successo:", result.message);
+    } else {
+        console.error("Errore nell'invio del risultato quiz finale:", result.message);
+    }
+}
+
+
+// --- Event Listeners e Inizializzazione ---
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".btn-nav").forEach(btn => {
+        btn.textContent = translations[currentLang][btn.dataset.section];
+        btn.addEventListener("click", () => showSection(btn.dataset.section));
+    });
+
+    document.getElementById("lang-select").addEventListener("change", (e) => {
+        currentLang = e.target.value;
+        renderAll();
+    });
+
+    renderAll(); // Avvia l'app immediatamente, i quiz verranno caricati al bisogno
+});
+
+function renderAll() {
+    document.querySelectorAll(".btn-nav").forEach(btn => {
+        btn.textContent = translations[currentLang][btn.dataset.section];
+    });
+    const activeSectionBtn = document.querySelector(".btn-nav.active"); 
+    if (activeSectionBtn) {
+        showSection(activeSectionBtn.dataset.section);
+    } else {
+        showSection("home");
+    }
+}

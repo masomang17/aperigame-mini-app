@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giochi</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <h1>🎮 Gioco: Quiz</h1>
+    <p id="question">Qual è la capitale d’Italia?</p>
+    <div class="btn-group">
+      <button onclick="checkAnswer(0)">Milano</button>
+      <button onclick="checkAnswer(1)">Roma</button>
+      <button onclick="checkAnswer(2)">Napoli</button>
+    </div>
+    <p id="result"></p>
+    <a href="index.html" class="btn">⬅️ Torna</a>
+  </div>
+  <script>
+    function checkAnswer(index) {
+      const result = document.getElementById('result');
+      if (index === 1) {
+        let stars = parseInt(localStorage.getItem('stars') || '0');
+        stars += 5;
+        localStorage.setItem('stars', stars);
+        result.innerText = "✅ Corretto! Hai guadagnato 5 stelle.";
+        document.getElementById("result").style.color = "lightgreen";
+      } else {
+        result.innerText = "❌ Risposta sbagliata!";
+        document.getElementById("result").style.color = "orange";
+      }
+    }
+  </script>
+</body>
+</html>

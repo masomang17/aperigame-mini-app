@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aperigame</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Aperigame</h1>
+            <div class="header-right">
+                <label for="lang-select" class="visually-hidden">Seleziona lingua</label>
+                <select id="lang-select" aria-label="Select language">
+                    <option value="it">🇮🇹 Italiano</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select>
+            </div>
+        </header>
+
+        <nav>
+            <button data-section="home" class="active btn-nav"></button>
+            <button data-section="profile" class="btn-nav"></button>
+            <button data-section="prizes" class="btn-nav"></button>
+        </nav>
+
+        <main>
+            <section id="home" class="section active">
+                <h2></h2>
+                <div id="games-list" class="games-list"></div>
+            </section>
+
+            <section id="profile" class="section">
+                <h2></h2>
+                <p><strong id="profile-user"></strong></p>
+                <p><span id="stars-count"></span> ⭐</p>
+            </section>
+
+            <section id="prizes" class="section">
+                <h2></h2>
+                <div id="prizes-list" class="prizes-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
