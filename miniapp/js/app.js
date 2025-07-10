@@ -1,6 +1,9 @@
 // *** IL TUO URL DI DEPLOYMENT ESATTO DEL GOOGLE APPS SCRIPT ***
 const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbzozQ-WtW4DhrhFyqyZDTsoqkbcQUDAQxi98k2YZ2YCDGi2mxj4wQIUE9FMWdme-HZqkQ/exec';
 
+// --- INSERISCI QUI LA TUA BASE URL ---
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/'; 
+
 // --- Traduzioni per la navigazione e le sezioni ---
 const translations = {
     it: {
@@ -568,3 +571,4 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("lang-select").value = currentLang;
     loadInitialData();
 });
+
