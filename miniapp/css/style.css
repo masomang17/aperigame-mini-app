@@ -2,126 +2,126 @@
 
 /* Variabili CSS per i colori */
 :root {
-    --bg-dark: #1b1b1b;
-    --bg-medium: #2b2b2b;
-    --bg-light: #333;
-    --primary-red: #e60012;
-    --primary-red-hover: #ff2929;
-    --accent-red: #ff5050;
-    --text-color: #eee;
-    --correct-green: #2ecc71;
-    --wrong-red: #e74c3c;
-    --timer-orange: #ffa500;
-    --box-shadow-color: rgba(230, 0, 18, 0.67);
-    --selected-1x2-blue: #007bff;
-    --selected-1x2-blue-border: #0056b3;
+    --bg-dark: #1b1b1b;
+    --bg-medium: #2b2b2b;
+    --bg-light: #333;
+    --primary-red: #e60012;
+    --primary-red-hover: #ff2929;
+    --accent-red: #ff5050;
+    --text-color: #eee;
+    --correct-green: #2ecc71;
+    --wrong-red: #e74c3c;
+    --timer-orange: #ffa500;
+    --box-shadow-color: rgba(230, 0, 18, 0.67);
+    --selected-1x2-blue: #007bff;
+    --selected-1x2-blue-border: #0056b3;
 }
 
 /* Stili Generali */
 * {
-    box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    overflow-y: auto;
 }
 
 #app {
-    max-width: 480px;
-    width: 100%;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    max-width: 480px;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
 header h1 {
-    color: var(--primary-red);
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin: 0;
+    color: var(--primary-red);
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin: 0;
 }
 
 .header-right {
-    display: flex;
-    align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 #lang-select {
-    background: var(--bg-light);
-    color: var(--text-color);
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Csvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 12px;
+    background: var(--bg-light);
+    color: var(--text-color);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3Csvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
 }
 
 /* Stili di Navigazione */
 nav {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 25px;
-    background: var(--bg-medium);
-    border-radius: 12px;
-    padding: 5px;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    background: var(--bg-medium);
+    border-radius: 12px;
+    padding: 5px;
 }
 
 .btn-nav {
-    background: transparent;
-    border: none;
-    padding: 10px 20px;
-    color: var(--text-color);
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    flex-grow: 1;
-    text-align: center;
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    color: var(--text-color);
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    flex-grow: 1;
+    text-align: center;
 }
 
 .btn-nav:hover,
 .btn-nav.active {
-    background: var(--primary-red);
-    color: #fff;
+    background: var(--primary-red);
+    color: #fff;
 }
 
 /* Sezioni dell'App */
 .section {
-    display: none;
-    flex-grow: 1;
+    display: none;
+    flex-grow: 1;
 }
 
 .section.active {
-    display: block;
+    display: block;
 }
 
 .section h2 {
-    color: var(--accent-red);
-    font-size: 1.5rem;
-    margin-top: 0;
-    margin-bottom: 20px;
-    text-align: center;
+    color: var(--accent-red);
+    font-size: 1.5rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 /* --- SEZIONE CARD CORRETTA --- */
@@ -135,9 +135,12 @@ nav {
     box-shadow: 0 0 10px var(--box-shadow-color);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 125px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    
+    /* Allinea il contenuto in alto invece di allungarlo */
+    justify-content: flex-start; 
+    /* Aggiunge un po' di spazio tra titolo, costo e bottone */
+    gap: 8px; 
 }
 
 .game-card:hover, .prize-card:hover {
@@ -176,154 +179,154 @@ nav {
 
 /* Titoli e testo dentro le card */
 .game-title, .prize-title {
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--accent-red);
-    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--accent-red);
+    font-size: 1.1rem;
 }
 
 .prize-card p {
-    margin: 5px 0;
-    font-size: 0.95rem;
+    margin: 5px 0;
+    font-size: 0.95rem;
 }
 
 /* Pulsanti Generici (Play, Request Prize) */
 button.play-btn {
-    background: var(--primary-red);
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-top: auto;
+    background: var(--primary-red);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: auto;
 }
 
 button.play-btn:hover {
-    background: var(--primary-red-hover);
+    background: var(--primary-red-hover);
 }
 
 button.play-btn:disabled {
-    background-color: #555;
-    cursor: not-allowed;
-    opacity: 0.7;
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* Stili del Profilo */
 #profile p {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 #profile p strong {
-    color: var(--accent-red);
+    color: var(--accent-red);
 }
 
 #stars-count {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--timer-orange);
-    display: inline-block;
-    margin-right: 5px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--timer-orange);
+    display: inline-block;
+    margin-right: 5px;
 }
 
 /* Stili del QUIZ */
 .quiz-container {
-    padding: 20px;
-    background: var(--bg-medium);
-    border-radius: 12px;
-    box-shadow: 0 0 15px var(--box-shadow-color);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    padding: 20px;
+    background: var(--bg-medium);
+    border-radius: 12px;
+    box-shadow: 0 0 15px var(--box-shadow-color);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .quiz-container h3 {
-    color: var(--accent-red);
-    font-size: 1.6rem;
-    margin-top: 0;
-    margin-bottom: 10px;
+    color: var(--accent-red);
+    font-size: 1.6rem;
+    margin-top: 0;
+    margin-bottom: 10px;
 }
 
 .quiz-container p {
-    margin: 5px 0;
-    font-size: 1.1rem;
+    margin: 5px 0;
+    font-size: 1.1rem;
 }
 
 .quiz-container p strong {
-    color: var(--primary-red);
+    color: var(--primary-red);
 }
 
 .quiz-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
 .quiz-timer {
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: var(--timer-orange);
-    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: var(--timer-orange);
+    font-size: 1.3rem;
 }
 
 .quiz-answers {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 .btn-quiz {
-    background: var(--bg-light);
-    border: none;
-    color: var(--text-color);
-    padding: 12px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    text-align: center;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    font-size: 1rem;
+    background: var(--bg-light);
+    border: none;
+    color: var(--text-color);
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    font-size: 1rem;
 }
 
 .btn-quiz:hover {
-    background: #666;
-    transform: translateY(-2px);
+    background: #666;
+    transform: translateY(-2px);
 }
 
 .btn-quiz:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .btn-correct {
-    background-color: var(--correct-green) !important;
-    color: #fff;
+    background-color: var(--correct-green) !important;
+    color: #fff;
 }
 
 .btn-wrong {
-    background-color: var(--wrong-red) !important;
-    color: #fff;
+    background-color: var(--wrong-red) !important;
+    color: #fff;
 }
 
 .btn-selected-1x2 {
-    background-color: var(--selected-1x2-blue) !important;
-    color: #fff;
-    border: 2px solid var(--selected-1x2-blue-border);
+    background-color: var(--selected-1x2-blue) !important;
+    color: #fff;
+    border: 2px solid var(--selected-1x2-blue-border);
 }
 
 .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
