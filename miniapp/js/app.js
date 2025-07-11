@@ -1,5 +1,5 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbwbp-Y7L-qro6ZmF3JsM5-UmkKB0Mc60kEo93Wr3-DHm1yM4CY6sUBea0Kj-efRywbm8g/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec'; // URL Aggiornato
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
 // --- TRADUZIONI (solo per testi statici dell'interfaccia) ---
@@ -24,7 +24,7 @@ const translations = {
 let currentLang = 'it';
 let telegramUserId = null, username = "User", telegramFirstName = null, telegramLastName = null;
 let shopItems = [], userProfile = { stars: 0 };
-let quizConfig = { questions: {}, title: "", prize: "" };
+let quizConfig = { questions: [], title: "", prize: "" };
 let quizState = {
     currentIndex: 0, score: 0, timer: null, timeLeft: 0, timePerQuestion: 15,
     answeringAllowed: true, currentQuizSheet: null,
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".btn-nav").forEach(btn => btn.addEventListener("click", () => showSection(btn.dataset.section)));
     document.getElementById("lang-select").addEventListener("change", (e) => {
         currentLang = e.target.value;
-        loadInitialData(); // Ricarica i dati con la nuova lingua
+        loadInitialData();
     });
 
     loadInitialData();
@@ -63,7 +63,7 @@ async function loadInitialData() {
     try {
         const [profileRes, shopRes] = await Promise.all([
             fetch(`${BASE_API_URL}?action=getProfile&userId=${telegramUserId}`),
-            fetch(`${BASE_API_URL}?action=getShopItems&lang=${currentLang}`) // Passa la lingua
+            fetch(`${BASE_API_URL}?action=getShopItems&lang=${currentLang}`)
         ]);
         const profileData = await profileRes.json();
         if (profileData?.status === 'success') userProfile = profileData.data;
@@ -94,7 +94,11 @@ async function sendDataToScript(data) {
 
 // --- FUNZIONI DI RENDERING UI ---
 function renderAll() {
-    document.querySelectorAll(".btn-nav").forEach(btn => btn.textContent = translations[currentLang][btn.dataset.section]);
+    document.querySelectorAll(".btn-nav").forEach(btn => {
+        if(translations[currentLang] && translations[currentLang][btn.dataset.section]) {
+            btn.textContent = translations[currentLang][btn.dataset.section];
+        }
+    });
     const activeSectionBtn = document.querySelector(".btn-nav.active");
     showSection(activeSectionBtn ? activeSectionBtn.dataset.section : 'quiz');
 }
@@ -113,29 +117,37 @@ function showSection(sectionId) {
 }
 
 function renderQuizPage() {
-    document.querySelector("#quiz h2").textContent = translations[currentLang].quiz;
+    const title = translations[currentLang]?.quiz || "Quiz";
+    document.querySelector("#quiz h2").textContent = title;
     createPlayCard('quiz-content', 'quiz', 'quiz');
 }
 
 function renderTipPage() {
-    document.querySelector("#tip h2").textContent = translations[currentLang].tip;
+    const title = translations[currentLang]?.tip || "Consigli";
+    document.querySelector("#tip h2").textContent = title;
     createPlayCard('tip-content', 'tip', 'tip');
 }
 
 function createPlayCard(containerId, titleKey, quizSheet) {
     const container = document.getElementById(containerId);
-    container.innerHTML = `<div class="game-card" id="play-card-${quizSheet}"><div class="game-title">${translations[currentLang][titleKey]}</div><button class="play-btn">${translations[currentLang].play}</button></div>`;
+    const title = translations[currentLang]?.[titleKey] || "Quiz";
+    const playText = translations[currentLang]?.play || "Gioca";
+    container.innerHTML = `<div class="game-card" id="play-card-${quizSheet}"><div class="game-title">${title}</div><button class="play-btn">${playText}</button></div>`;
     container.querySelector('.play-btn').addEventListener('click', (event) => playQuiz(quizSheet, event.target));
 }
 
 function renderProfile() {
-    document.querySelector("#profile h2").textContent = translations[currentLang].profile;
-    document.getElementById("profile-user").textContent = `${translations[currentLang].user}: ${username}`;
-    document.getElementById("stars-count").textContent = userProfile.stars || translations[currentLang].noStars;
+    const profileTitle = translations[currentLang]?.profile || "Profilo";
+    const userText = translations[currentLang]?.user || "Utente";
+    const noStarsText = translations[currentLang]?.noStars || "0";
+    document.querySelector("#profile h2").textContent = profileTitle;
+    document.getElementById("profile-user").textContent = `${userText}: ${username}`;
+    document.getElementById("stars-count").textContent = userProfile.stars || noStarsText;
 }
 
 function renderShop() {
-    document.querySelector("#shop h2").textContent = translations[currentLang].shop;
+    const shopTitle = translations[currentLang]?.shop || "Premi";
+    document.querySelector("#shop h2").textContent = shopTitle;
     const container = document.getElementById("shop-list");
     container.innerHTML = "";
     
@@ -146,15 +158,35 @@ function renderShop() {
     shopItems.forEach(prize => {
         const card = document.createElement("div");
         card.className = "prize-card";
-        // Il titolo arriva già tradotto dal backend
-        card.innerHTML = `<div class="prize-title">${prize.titolo}</div><p>${translations[currentLang].prizeCost} ⭐ ${prize.costo}</p><button class="play-btn">${translations[currentLang].prizeReq}</button>`;
+        const prizeTitle = prize.titolo || "Premio";
+        const costText = translations[currentLang]?.prizeCost || "Costo:";
+        const redeemText = translations[currentLang]?.prizeReq || "Riscatta";
+        card.innerHTML = `<div class="prize-title">${prizeTitle}</div><p>${costText} ⭐ ${prize.costo}</p><button class="play-btn">${redeemText}</button>`;
         card.querySelector('.play-btn').addEventListener('click', (event) => requestPrize(prize.id_premio, prize.costo, event.target));
         container.appendChild(card);
     });
 }
 
 async function requestPrize(prizeId, prizeCost, button) {
-    // ... (invariata dalla versione precedente)
+    if (userProfile.stars < prizeCost) {
+        return alert(translations[currentLang].notEnoughStars);
+    }
+    button.disabled = true;
+    const result = await sendDataToScript({
+        action: 'redeemPrize',
+        userId: telegramUserId,
+        username: username,
+        prizeId: prizeId,
+        prizeCost: prizeCost
+    });
+    if (result?.status === 'success') {
+        userProfile.stars = result.data.newStars;
+        renderProfile();
+        alert((translations[currentLang].prizeSuccess || "Premio '{prizeTitle}' richiesto con successo!").replace('{prizeTitle}', result.data.prizeTitle));
+    } else {
+        alert(result.message || "Errore richiesta premio.");
+    }
+    button.disabled = false;
 }
 
 // --- LOGICA DEL QUIZ ---
@@ -301,7 +333,7 @@ async function endQuizSequence() {
     if (result.status === 'success') {
         showQuizResult(result.data);
     } else {
-        alert("Errore nel salvataggio del risultato: " + result.message);
+        alert("Errore nel salvataggio del risultato: " + (result.message || 'Errore sconosciuto'));
     }
 }
 
