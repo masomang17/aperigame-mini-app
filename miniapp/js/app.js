@@ -1,5 +1,5 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbwbp-Y7L-qro6ZmF3JsM5-UmkKB0Mc60kEo93Wr3-DHm1yM4CY6sUBea0Kj-efRywbm8g/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
 // --- TRADUZIONI ---
