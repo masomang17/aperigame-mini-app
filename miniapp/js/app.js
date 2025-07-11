@@ -1,5 +1,5 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbzhSYZZdiyNoWj0H2kymCjU2S5kf5PjgyAfk4QVtXrErNeNFvP3cygB-dym4qXp5i08sQ/exec'; // URL Aggiornato
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbyJ5veBVhnsMLE8t4wf0A-nEBzrkurKZZJhqq1zhvyUTn6IRa20q0vaSmPDC67YJOblaQ/exec'; // URL Aggiornato
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
 // --- TRADUZIONI ---
@@ -140,7 +140,8 @@ function renderShop() {
     document.querySelector("#shop h2").textContent = translations[currentLang].shop;
     const container = document.getElementById("shop-list");
     container.innerHTML = "";
-    
+    sendDataToScript({ action: 'viewShop', userId: telegramUserId, username: username });
+
     if (!shopItems || shopItems.length === 0) {
         container.innerHTML = `<p>Nessun premio disponibile.</p>`;
         return;
@@ -157,11 +158,17 @@ function renderShop() {
 async function requestPrize(prizeId, prizeCost, button) {
     if (userProfile.stars < prizeCost) return alert(translations[currentLang].notEnoughStars);
     button.disabled = true;
-    const result = await sendDataToScript({ action: 'redeemPrize', userId: telegramUserId, prizeId: prizeId, prizeCost: prizeCost });
+    const result = await sendDataToScript({
+        action: 'redeemPrize',
+        userId: telegramUserId,
+        username: username,
+        prizeId: prizeId,
+        prizeCost: prizeCost
+    });
     if (result?.status === 'success') {
-        userProfile.stars = result.newStars;
+        userProfile.stars = result.data.newStars;
         renderProfile();
-        alert(translations[currentLang].prizeSuccess.replace('{prizeTitle}', result.prizeTitle));
+        alert(translations[currentLang].prizeSuccess.replace('{prizeTitle}', result.data.prizeTitle));
     } else {
         alert(result.message || "Errore richiesta premio.");
     }
@@ -311,7 +318,7 @@ function handleAnswer(selectedIndex) {
 }
 
 async function endQuizSequence() {
-    clearInterval(quizState.timer); // Assicura che il timer sia fermo
+    clearInterval(quizState.timer);
     const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
     const container = document.getElementById(containerId);
     container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>Salvataggio e calcolo classifica...</p></div>`;
