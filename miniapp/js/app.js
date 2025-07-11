@@ -1,21 +1,41 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec'; // USA L'ULTIMO URL CHE HAI GENERATO
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
-// --- TRADUZIONI ---
+// --- TRADUZIONI (per l'interfaccia) ---
 const translations = {
     it: {
         quiz: "Quiz", pronostici: "Pronostici", profile: "Profilo", shop: "Negozio", play: "Gioca Ora",
         user: "Utente", noStars: "0", prizeReq: "Riscatta", prizeCost: "Costo:",
-        notEnoughStars: "Non hai abbastanza stelle.",
-        prizeSuccess: "Premio '{prizeTitle}' richiesto!",
-        quizPrizeText: "Premio per il quiz: ", quizExit: "Esci",
-        quizScore: "Hai totalizzato", quizPoints: "punti",
-        quizTimeUp: "Tempo scaduto!", quizFinish: "Quiz Terminato!",
+        notEnoughStars: "Non hai abbastanza stelle.", prizeSuccess: "Premio '{prizeTitle}' richiesto!",
+        quizPrizeText: "Premio per il quiz: ", quizExit: "Esci", quizScore: "Hai totalizzato",
+        quizPoints: "punti", quizTimeUp: "Tempo scaduto!", quizFinish: "Quiz Terminato!",
         loadingQuiz: "Caricamento...", quizLoadError: "Errore caricamento quiz.",
         quizDataMissing: "Nessun quiz disponibile.", summaryTitle: "Riepilogo Partita",
         correctAnswers: "Corrette", wrongAnswers: "Errate", finalScore: "Punteggio",
         leaderboardPosition: "Classifica",
+    },
+    en: {
+        quiz: "Quiz", pronostici: "Predictions", profile: "Profile", shop: "Shop", play: "Play Now",
+        user: "User", noStars: "0", prizeReq: "Redeem", prizeCost: "Cost:",
+        notEnoughStars: "You don't have enough stars.", prizeSuccess: "Prize '{prizeTitle}' claimed!",
+        quizPrizeText: "Prize for the quiz: ", quizExit: "Exit", quizScore: "You scored",
+        quizPoints: "points", quizTimeUp: "Time's up!", quizFinish: "Quiz Finished!",
+        loadingQuiz: "Loading...", quizLoadError: "Error loading quiz.",
+        quizDataMissing: "No quiz available.", summaryTitle: "Match Summary",
+        correctAnswers: "Correct", wrongAnswers: "Wrong", finalScore: "Score",
+        leaderboardPosition: "Leaderboard",
+    },
+    es: {
+        quiz: "Quiz", pronostici: "Pronósticos", profile: "Perfil", shop: "Tienda", play: "Jugar Ahora",
+        user: "Usuario", noStars: "0", prizeReq: "Canjear", prizeCost: "Coste:",
+        notEnoughStars: "No tienes suficientes estrellas.", prizeSuccess: "¡Premio '{prizeTitle}' solicitado!",
+        quizPrizeText: "Premio para el quiz: ", quizExit: "Salir", quizScore: "Has conseguido",
+        quizPoints: "puntos", quizTimeUp: "¡Tiempo agotado!", quizFinish: "¡Fin del quiz!",
+        loadingQuiz: "Cargando...", quizLoadError: "Error al cargar el quiz.",
+        quizDataMissing: "Ningún quiz disponible.", summaryTitle: "Resumen del Partido",
+        correctAnswers: "Correctas", wrongAnswers: "Incorrectas", finalScore: "Puntuación",
+        leaderboardPosition: "Clasificación",
     }
 };
 
@@ -44,17 +64,19 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("SDK non disponibile. Uso dati di test.");
         telegramUserId = "test_user_123"; username = "TestUser";
     }
+
     document.querySelectorAll(".btn-nav").forEach(btn => btn.addEventListener("click", () => showSection(btn.dataset.section)));
     document.getElementById("lang-select").addEventListener("change", (e) => {
         currentLang = e.target.value;
-        loadInitialData();
+        loadInitialData(); // Ricarica tutti i dati quando la lingua cambia
     });
+
     loadInitialData();
 });
 
 // --- FUNZIONI DI CARICAMENTO DATI ---
 async function loadInitialData() {
-    renderAll(); 
+    renderAllUI(); // Mostra subito l'interfaccia statica tradotta
     if (!telegramUserId) return;
     try {
         const [profileRes, shopRes] = await Promise.all([
@@ -66,10 +88,11 @@ async function loadInitialData() {
         const shopData = await shopRes.json();
         if (shopData?.status === 'success') shopItems = shopData.data;
     } catch (error) {
-        console.error("Errore caricamento dati:", error);
+        console.error("Errore caricamento dati iniziali:", error);
     } finally {
-        renderProfile();
-        renderShop();
+        // Aggiorna le sezioni con i nuovi dati caricati
+        const activeSection = document.querySelector(".section.active")?.id || 'quiz';
+        showSection(activeSection);
     }
 }
 
@@ -89,18 +112,29 @@ async function sendDataToScript(data) {
 }
 
 // --- FUNZIONI DI RENDERING UI ---
-function renderAll() {
-    document.querySelectorAll(".btn-nav").forEach(btn => {
-        btn.textContent = translations[currentLang]?.[btn.dataset.section] || btn.dataset.section;
+function renderAllUI() {
+    document.querySelectorAll("[data-translate]").forEach(el => {
+        const key = el.getAttribute("data-translate");
+        if (translations[currentLang]?.[key]) {
+            el.textContent = translations[currentLang][key];
+        }
     });
-    const activeSectionBtn = document.querySelector(".btn-nav.active");
-    showSection(activeSectionBtn ? activeSectionBtn.dataset.section : 'quiz');
+    // Aggiorna anche i bottoni di navigazione
+    document.querySelectorAll(".btn-nav").forEach(btn => {
+        const key = btn.dataset.section;
+        if (translations[currentLang]?.[key]) {
+            btn.textContent = translations[currentLang][key];
+        }
+    });
 }
 
 function showSection(sectionId) {
     document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-    document.getElementById(sectionId)?.classList.add("active");
+    const sectionElement = document.getElementById(sectionId);
+    if (sectionElement) sectionElement.classList.add("active");
+    
     document.querySelectorAll(".btn-nav").forEach(btn => btn.classList.toggle("active", btn.dataset.section === sectionId));
+    
     const renderMap = {
         quiz: renderQuizPage,
         pronostici: renderPronosticiPage,
@@ -267,7 +301,7 @@ async function endQuizSequence() {
     clearInterval(quizState.timer);
     const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'pronostici-content';
     const container = document.getElementById(containerId);
-    container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>Salvataggio e calcolo classifica...</p></div>`;
+    container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>${translations[currentLang].loadingQuiz}</p></div>`;
     const result = await sendDataToScript({
         action: 'submitQuiz', userId: telegramUserId, username: username,
         firstName: telegramFirstName, lastName: telegramLastName,
