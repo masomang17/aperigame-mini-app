@@ -1,11 +1,15 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbwbp-Y7L-qro6ZmF3JsM5-UmkKB0Mc60kEo93Wr3-DHm1yM4CY6sUBea0Kj-efRywbm8g/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
-// --- TRADUZIONI (per testi statici dell'interfaccia) ---
+// --- TRADUZIONI ---
 const translations = {
     it: {
-        quiz: "Quiz", tip: "Consigli", profile: "Profilo", shop: "Premi", play: "Gioca Ora",
+        quiz: "Quiz",
+        pronostici: "Pronostici", // MODIFICATO
+        profile: "Profilo",
+        shop: "Negozio", // MODIFICATO
+        play: "Gioca Ora",
         user: "Utente", noStars: "0", prizeReq: "Riscatta", prizeCost: "Costo:",
         notEnoughStars: "Non hai abbastanza stelle per questo premio.",
         prizeSuccess: "Premio '{prizeTitle}' richiesto con successo!",
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- FUNZIONI DI CARICAMENTO DATI ---
 async function loadInitialData() {
-    renderAll();
+    renderAll(); 
     if (!telegramUserId) return;
     try {
         const [profileRes, shopRes] = await Promise.all([
@@ -108,7 +112,7 @@ function showSection(sectionId) {
 
     switch (sectionId) {
         case 'quiz': renderQuizPage(); break;
-        case 'tip': renderTipPage(); break;
+        case 'pronostici': renderPronosticiPage(); break; // MODIFICATO
         case 'profile': renderProfile(); break;
         case 'shop': renderShop(); break;
     }
@@ -119,9 +123,9 @@ function renderQuizPage() {
     createPlayCard('quiz-content', 'quiz', 'quiz');
 }
 
-function renderTipPage() {
-    document.querySelector("#tip h2").textContent = translations[currentLang].tip;
-    createPlayCard('tip-content', 'tip', 'tip');
+function renderPronosticiPage() {
+    document.querySelector("#pronostici h2").textContent = translations[currentLang].pronostici;
+    createPlayCard('pronostici-content', 'pronostici', 'pronostici');
 }
 
 function createPlayCard(containerId, titleKey, quizSheet) {
@@ -230,14 +234,12 @@ function showQuizQuestion() {
     const q = questions[quizState.currentIndex];
     clearInterval(quizState.timer);
 
-    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
+    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'pronostici-content';
     const container = document.getElementById(containerId);
     
-    // --- CORREZIONE: Usa le intestazioni in italiano ---
     container.innerHTML = `<div class="quiz-container"><h3>${quizConfig.title || "Quiz"}</h3><p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizConfig.prize}</p>${q.url_immagine ? `<img src="${IMAGE_BASE_URL}${q.url_immagine}" alt="Immagine Quiz" class="quiz-image">` : ''}<div id="quiz-timer" class="quiz-timer"></div><p><strong>${q.domanda}</strong></p><div id="quiz-answers" class="quiz-answers"></div><button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button></div>`;
 
     const answersDiv = document.getElementById("quiz-answers");
-    // --- CORREZIONE: Usa l'intestazione in italiano ---
     q.risposte.forEach((ans, i) => {
         const btn = document.createElement("button");
         btn.textContent = ans;
@@ -271,7 +273,6 @@ function handleAnswer(selectedIndex) {
     const buttons = document.querySelectorAll("#quiz-answers button");
     buttons.forEach(btn => btn.disabled = true);
     
-    // --- CORREZIONE: Usa le intestazioni in italiano ---
     const isCorrect = selectedIndex === q.indice_corretta;
 
     if (isCorrect) {
@@ -283,7 +284,6 @@ function handleAnswer(selectedIndex) {
         if (selectedIndex !== -1) {
             buttons[selectedIndex].classList.add('btn-wrong');
         }
-        // --- CORREZIONE: Usa le intestazioni in italiano ---
         if (q.indice_corretta >= 0) {
             buttons[q.indice_corretta].classList.add('btn-correct');
         }
@@ -297,7 +297,7 @@ function handleAnswer(selectedIndex) {
 
 async function endQuizSequence() {
     clearInterval(quizState.timer);
-    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
+    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'pronostici-content';
     const container = document.getElementById(containerId);
     container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>Salvataggio e calcolo classifica...</p></div>`;
 
@@ -324,7 +324,7 @@ async function endQuizSequence() {
 }
 
 function showQuizResult(backendData) {
-    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
+    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'pronostici-content';
     const container = document.getElementById(containerId);
 
     let rankChangeHtml = '';
@@ -349,11 +349,6 @@ function showQuizResult(backendData) {
     const returnSection = quizState.currentQuizSheet;
     document.getElementById('return-btn').addEventListener('click', () => showSection(returnSection));
     quizState.currentQuizSheet = null;
-}
-
-function updateTimerUI() {
-    const timerDiv = document.getElementById("quiz-timer");
-    if (timerDiv) timerDiv.textContent = `⏳ ${quizState.timeLeft}s`;
 }
 
 function updateTimerUI() {
