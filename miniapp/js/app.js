@@ -1,8 +1,8 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec'; // URL Aggiornato
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
-// --- TRADUZIONI (solo per testi statici dell'interfaccia) ---
+// --- TRADUZIONI (per testi statici dell'interfaccia) ---
 const translations = {
     it: {
         quiz: "Quiz", tip: "Consigli", profile: "Profilo", shop: "Premi", play: "Gioca Ora",
@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- FUNZIONI DI CARICAMENTO DATI ---
 async function loadInitialData() {
-    renderAll(); 
+    renderAll();
     if (!telegramUserId) return;
     try {
         const [profileRes, shopRes] = await Promise.all([
@@ -95,9 +95,7 @@ async function sendDataToScript(data) {
 // --- FUNZIONI DI RENDERING UI ---
 function renderAll() {
     document.querySelectorAll(".btn-nav").forEach(btn => {
-        if(translations[currentLang] && translations[currentLang][btn.dataset.section]) {
-            btn.textContent = translations[currentLang][btn.dataset.section];
-        }
+        btn.textContent = translations[currentLang][btn.dataset.section];
     });
     const activeSectionBtn = document.querySelector(".btn-nav.active");
     showSection(activeSectionBtn ? activeSectionBtn.dataset.section : 'quiz');
@@ -117,37 +115,29 @@ function showSection(sectionId) {
 }
 
 function renderQuizPage() {
-    const title = translations[currentLang]?.quiz || "Quiz";
-    document.querySelector("#quiz h2").textContent = title;
+    document.querySelector("#quiz h2").textContent = translations[currentLang].quiz;
     createPlayCard('quiz-content', 'quiz', 'quiz');
 }
 
 function renderTipPage() {
-    const title = translations[currentLang]?.tip || "Consigli";
-    document.querySelector("#tip h2").textContent = title;
+    document.querySelector("#tip h2").textContent = translations[currentLang].tip;
     createPlayCard('tip-content', 'tip', 'tip');
 }
 
 function createPlayCard(containerId, titleKey, quizSheet) {
     const container = document.getElementById(containerId);
-    const title = translations[currentLang]?.[titleKey] || "Quiz";
-    const playText = translations[currentLang]?.play || "Gioca";
-    container.innerHTML = `<div class="game-card" id="play-card-${quizSheet}"><div class="game-title">${title}</div><button class="play-btn">${playText}</button></div>`;
+    container.innerHTML = `<div class="game-card" id="play-card-${quizSheet}"><div class="game-title">${translations[currentLang][titleKey]}</div><button class="play-btn">${translations[currentLang].play}</button></div>`;
     container.querySelector('.play-btn').addEventListener('click', (event) => playQuiz(quizSheet, event.target));
 }
 
 function renderProfile() {
-    const profileTitle = translations[currentLang]?.profile || "Profilo";
-    const userText = translations[currentLang]?.user || "Utente";
-    const noStarsText = translations[currentLang]?.noStars || "0";
-    document.querySelector("#profile h2").textContent = profileTitle;
-    document.getElementById("profile-user").textContent = `${userText}: ${username}`;
-    document.getElementById("stars-count").textContent = userProfile.stars || noStarsText;
+    document.querySelector("#profile h2").textContent = translations[currentLang].profile;
+    document.getElementById("profile-user").textContent = `${translations[currentLang].user}: ${username}`;
+    document.getElementById("stars-count").textContent = userProfile.stars || "0";
 }
 
 function renderShop() {
-    const shopTitle = translations[currentLang]?.shop || "Premi";
-    document.querySelector("#shop h2").textContent = shopTitle;
+    document.querySelector("#shop h2").textContent = translations[currentLang].shop;
     const container = document.getElementById("shop-list");
     container.innerHTML = "";
     
@@ -158,31 +148,23 @@ function renderShop() {
     shopItems.forEach(prize => {
         const card = document.createElement("div");
         card.className = "prize-card";
-        const prizeTitle = prize.titolo || "Premio";
-        const costText = translations[currentLang]?.prizeCost || "Costo:";
-        const redeemText = translations[currentLang]?.prizeReq || "Riscatta";
-        card.innerHTML = `<div class="prize-title">${prizeTitle}</div><p>${costText} ⭐ ${prize.costo}</p><button class="play-btn">${redeemText}</button>`;
+        card.innerHTML = `<div class="prize-title">${prize.titolo}</div><p>${translations[currentLang].prizeCost} ⭐ ${prize.costo}</p><button class="play-btn">${translations[currentLang].prizeReq}</button>`;
         card.querySelector('.play-btn').addEventListener('click', (event) => requestPrize(prize.id_premio, prize.costo, event.target));
         container.appendChild(card);
     });
 }
 
 async function requestPrize(prizeId, prizeCost, button) {
-    if (userProfile.stars < prizeCost) {
-        return alert(translations[currentLang].notEnoughStars);
-    }
+    if (userProfile.stars < prizeCost) return alert(translations[currentLang].notEnoughStars);
     button.disabled = true;
     const result = await sendDataToScript({
-        action: 'redeemPrize',
-        userId: telegramUserId,
-        username: username,
-        prizeId: prizeId,
-        prizeCost: prizeCost
+        action: 'redeemPrize', userId: telegramUserId, username: username,
+        prizeId: prizeId, prizeCost: prizeCost
     });
     if (result?.status === 'success') {
         userProfile.stars = result.data.newStars;
         renderProfile();
-        alert((translations[currentLang].prizeSuccess || "Premio '{prizeTitle}' richiesto con successo!").replace('{prizeTitle}', result.data.prizeTitle));
+        alert(translations[currentLang].prizeSuccess.replace('{prizeTitle}', result.data.prizeTitle));
     } else {
         alert(result.message || "Errore richiesta premio.");
     }
@@ -243,17 +225,19 @@ async function loadQuizData(quizSheet, buttonElement) {
 
 function showQuizQuestion() {
     const questions = quizConfig.questions;
-    if (quizState.currentIndex >= questions.length) {
-        return endQuizSequence();
-    }
+    if (quizState.currentIndex >= questions.length) return endQuizSequence();
+    
     const q = questions[quizState.currentIndex];
     clearInterval(quizState.timer);
 
     const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
     const container = document.getElementById(containerId);
+    
+    // --- CORREZIONE: Usa le intestazioni in italiano ---
     container.innerHTML = `<div class="quiz-container"><h3>${quizConfig.title || "Quiz"}</h3><p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizConfig.prize}</p>${q.url_immagine ? `<img src="${IMAGE_BASE_URL}${q.url_immagine}" alt="Immagine Quiz" class="quiz-image">` : ''}<div id="quiz-timer" class="quiz-timer"></div><p><strong>${q.domanda}</strong></p><div id="quiz-answers" class="quiz-answers"></div><button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button></div>`;
 
     const answersDiv = document.getElementById("quiz-answers");
+    // --- CORREZIONE: Usa l'intestazione in italiano ---
     q.risposte.forEach((ans, i) => {
         const btn = document.createElement("button");
         btn.textContent = ans;
@@ -286,7 +270,8 @@ function handleAnswer(selectedIndex) {
     const q = quizConfig.questions[quizState.currentIndex];
     const buttons = document.querySelectorAll("#quiz-answers button");
     buttons.forEach(btn => btn.disabled = true);
-
+    
+    // --- CORREZIONE: Usa le intestazioni in italiano ---
     const isCorrect = selectedIndex === q.indice_corretta;
 
     if (isCorrect) {
@@ -298,6 +283,7 @@ function handleAnswer(selectedIndex) {
         if (selectedIndex !== -1) {
             buttons[selectedIndex].classList.add('btn-wrong');
         }
+        // --- CORREZIONE: Usa le intestazioni in italiano ---
         if (q.indice_corretta >= 0) {
             buttons[q.indice_corretta].classList.add('btn-correct');
         }
@@ -342,13 +328,9 @@ function showQuizResult(backendData) {
     const container = document.getElementById(containerId);
 
     let rankChangeHtml = '';
-    if (backendData.rankChange === 'up') {
-        rankChangeHtml = '<span class="rank-up">▲</span>';
-    } else if (backendData.rankChange === 'down') {
-        rankChangeHtml = '<span class="rank-down">▼</span>';
-    } else {
-        rankChangeHtml = '<span class="rank-same">▬</span>';
-    }
+    if (backendData.rankChange === 'up') rankChangeHtml = '<span class="rank-up">▲</span>';
+    else if (backendData.rankChange === 'down') rankChangeHtml = '<span class="rank-down">▼</span>';
+    else rankChangeHtml = '<span class="rank-same">▬</span>';
     
     const questions = quizConfig.questions;
 
@@ -367,6 +349,11 @@ function showQuizResult(backendData) {
     const returnSection = quizState.currentQuizSheet;
     document.getElementById('return-btn').addEventListener('click', () => showSection(returnSection));
     quizState.currentQuizSheet = null;
+}
+
+function updateTimerUI() {
+    const timerDiv = document.getElementById("quiz-timer");
+    if (timerDiv) timerDiv.textContent = `⏳ ${quizState.timeLeft}s`;
 }
 
 function updateTimerUI() {
