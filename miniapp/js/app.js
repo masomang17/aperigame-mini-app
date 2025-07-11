@@ -1,5 +1,5 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbzozQ-WtW4DhrhFyqyZDTsoqkbcQUDAQxi98k2YZ2YCDGi2mxj4wQIUE9FMWdme-HZqkQ/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbzhSYZZdiyNoWj0H2kymCjU2S5kf5PjgyAfk4QVtXrErNeNFvP3cygB-dym4qXp5i08sQ/exec'; // URL Aggiornato
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
 // --- TRADUZIONI ---
@@ -18,9 +18,7 @@ const translations = {
         summaryTitle: "Riepilogo Partita", correctAnswers: "Risposte Corrette",
         wrongAnswers: "Risposte Errate", finalScore: "Punteggio Ottenuto",
         leaderboardPosition: "Posizione in Classifica",
-    },
-    en: { /* ... Inserire traduzioni in inglese se necessario ... */ },
-    es: { /* ... Inserire traduzioni in spagnolo se necessario ... */ }
+    }
 };
 
 // --- STATO DELL'APPLICAZIONE ---
@@ -49,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("SDK Telegram non disponibile. Uso dati di test.");
         telegramUserId = "test_user_123";
         username = "TestUser";
+        telegramFirstName = "Test";
+        telegramLastName = "User";
     }
 
     document.querySelectorAll(".btn-nav").forEach(btn => btn.addEventListener("click", () => showSection(btn.dataset.section)));
@@ -140,7 +140,7 @@ function renderShop() {
     document.querySelector("#shop h2").textContent = translations[currentLang].shop;
     const container = document.getElementById("shop-list");
     container.innerHTML = "";
-
+    
     if (!shopItems || shopItems.length === 0) {
         container.innerHTML = `<p>Nessun premio disponibile.</p>`;
         return;
@@ -202,8 +202,10 @@ async function loadQuizData(quizSheet, buttonElement) {
     }
     try {
         const response = await fetch(`${BASE_API_URL}?action=getQuiz&quiz_name=${quizSheet}`);
-        const rawData = await response.json();
-        if (rawData.error) throw new Error(rawData.error);
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message);
+
+        const rawData = result.data;
         quizConfig.questions[quizSheet] = {};
         quizConfig.titles[quizSheet] = {};
         const groupedQuestions = {};
@@ -251,7 +253,7 @@ function showQuizQuestion() {
     const container = document.getElementById(containerId);
     container.innerHTML = `<div class="quiz-container"><h3>${quizConfig.titles[quizState.currentQuizSheet]?.[currentLang] || "Quiz"}</h3><p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizConfig.prize}</p>${q.imageUrl ? `<img src="${IMAGE_BASE_URL}${q.imageUrl}" alt="Immagine Quiz" class="quiz-image">` : ''}<div id="quiz-timer" class="quiz-timer"></div><p><strong>${q.question}</strong></p><div id="quiz-answers" class="quiz-answers"></div><button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button></div>`;
 
-    document.getElementById("quiz-exit").addEventListener('click', () => { clearInterval(quizState.timer); endQuizSequence(); });
+    document.getElementById("quiz-exit").addEventListener('click', () => endQuizSequence());
     const answersDiv = document.getElementById("quiz-answers");
     q.answers.forEach((ans, i) => {
         const btn = document.createElement("button");
@@ -309,6 +311,7 @@ function handleAnswer(selectedIndex) {
 }
 
 async function endQuizSequence() {
+    clearInterval(quizState.timer); // Assicura che il timer sia fermo
     const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
     const container = document.getElementById(containerId);
     container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>Salvataggio e calcolo classifica...</p></div>`;
