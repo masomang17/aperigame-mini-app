@@ -161,9 +161,19 @@ function createPlayCard(containerId, titleKey, quizSheet) {
 }
 
 function renderProfile() {
-    document.querySelector("#profile h2").textContent = translations[currentLang].profile;
-    document.getElementById("profile-user").textContent = `${translations[currentLang].user}: ${username}`;
-    document.getElementById("stars-count").textContent = userProfile.stars || "0";
+  document.querySelector("#profile h2").textContent = translations[currentLang].profile;
+  
+  // Recupera i nuovi elementi HTML
+  const userEl = document.getElementById("profile-user");
+  const rankEl = document.getElementById("profile-rank");
+  const scoreEl = document.getElementById("profile-score");
+  const starsEl = document.getElementById("stars-count");
+
+  // Popola gli elementi con i dati da userProfile
+  if (userEl) userEl.textContent = userProfile.username || username;
+  if (rankEl) rankEl.textContent = userProfile.posizione ? `${userProfile.posizione}°` : 'N/A';
+  if (scoreEl) scoreEl.textContent = userProfile.totalScore || 0;
+  if (starsEl) starsEl.textContent = userProfile.stars || 0;
 }
 
 function renderShop() {
