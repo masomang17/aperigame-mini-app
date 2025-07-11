@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aperigame</title>
     <link rel="stylesheet" href="css/style.css" />
-    <script src="js/app.js?v=3"></script> <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="js/app.js?v=5"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div id="app">
         <header>
             <h1>Aperigame</h1>
             <div class="header-right">
-                <label for="lang-select" class="visually-hidden">Seleziona lingua</label>
                 <select id="lang-select" aria-label="Select language">
                     <option value="it">🇮🇹 Italiano</option>
                     <option value="en">🇬🇧 English</option>
@@ -22,34 +22,31 @@
         </header>
 
         <nav>
-            <button data-section="quiz" class="active btn-nav"></button>
-            <button data-section="pronostici" class="btn-nav"></button>
-            <button data-section="profile" class="btn-nav"></button>
-            <button data-section="shop" class="btn-nav"></button>
+            <button data-section="quiz" class="active btn-nav">Quiz</button>
+            <button data-section="pronostici" class="btn-nav">Pronostici</button>
+            <button data-section="profile" class="btn-nav">Profilo</button>
+            <button data-section="negozio" class="btn-nav">Negozio</button>
         </nav>
 
         <main>
             <section id="quiz" class="section active">
-                <h2></h2>
+                <h2>Quiz</h2>
                 <div id="quiz-content" class="content-container"></div>
             </section>
-            
             <section id="pronostici" class="section">
-                <h2></h2>
+                <h2>Pronostici</h2>
                 <div id="pronostici-content" class="content-container"></div>
             </section>
-
             <section id="profile" class="section">
-              <h2></h2>
-              <p><strong id="profile-user"></strong></p>
-              <p>Posizione in Classifica: <strong id="profile-rank">N/A</strong></p>
-              <p>Punteggio Totale: <strong id="profile-score">0</strong></p>
-              <p>Stelle: <span id="stars-count">0</span> ⭐</p>
-          </section>
-
-            <section id="shop" class="section">
-                <h2></h2>
-                <div id="shop-list" class="prizes-list"></div>
+                <h2>Profilo</h2>
+                <p>Utente: <strong id="profile-user"></strong></p>
+                <p>Posizione in Classifica: <strong id="profile-rank">N/D</strong></p>
+                <p>Punteggio Totale: <strong id="profile-score">0</strong></p>
+                <p>Stelle: <span id="stars-count">0</span> ⭐</p>
+            </section>
+            <section id="negozio" class="section">
+                <h2>Negozio</h2>
+                <div id="negozio-list" class="prizes-list"></div>
             </section>
         </main>
     </div>
