@@ -1,5 +1,5 @@
 // --- CONFIGURAZIONE PRINCIPALE ---
-const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbxlL7BuxcTpYS3881sGAadqTXrAUmJLKThzpBk3jPn-R8OYrFKyLXofiFv2EV4StO3OXw/exec';
+const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbwbp-Y7L-qro6ZmF3JsM5-UmkKB0Mc60kEo93Wr3-DHm1yM4CY6sUBea0Kj-efRywbm8g/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
 // --- TRADUZIONI (solo per testi statici dell'interfaccia) ---
@@ -18,14 +18,13 @@ const translations = {
         wrongAnswers: "Risposte Errate", finalScore: "Punteggio Ottenuto",
         leaderboardPosition: "Posizione in Classifica",
     }
-    // Non servono più le altre lingue qui per i contenuti dinamici
 };
 
 // --- STATO DELL'APPLICAZIONE ---
 let currentLang = 'it';
 let telegramUserId = null, username = "User", telegramFirstName = null, telegramLastName = null;
 let shopItems = [], userProfile = { stars: 0 };
-let quizConfig = { questions: {}, titles: {}, prize: "Buono da 5€" };
+let quizConfig = { questions: {}, title: "", prize: "" };
 let quizState = {
     currentIndex: 0, score: 0, timer: null, timeLeft: 0, timePerQuestion: 15,
     answeringAllowed: true, currentQuizSheet: null,
@@ -51,8 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".btn-nav").forEach(btn => btn.addEventListener("click", () => showSection(btn.dataset.section)));
     document.getElementById("lang-select").addEventListener("change", (e) => {
         currentLang = e.target.value;
-        // Ricarica i dati per la nuova lingua
-        loadInitialData();
+        loadInitialData(); // Ricarica i dati con la nuova lingua
     });
 
     loadInitialData();
@@ -60,12 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- FUNZIONI DI CARICAMENTO DATI ---
 async function loadInitialData() {
-    renderAll(); // Mostra subito l'interfaccia statica
+    renderAll(); 
     if (!telegramUserId) return;
     try {
         const [profileRes, shopRes] = await Promise.all([
-            fetch(`${BASE_API_URL}?action=getProfile&userId=${telegramUserId}&lang=${currentLang}`),
-            fetch(`${BASE_API_URL}?action=getShopItems&lang=${currentLang}`)
+            fetch(`${BASE_API_URL}?action=getProfile&userId=${telegramUserId}`),
+            fetch(`${BASE_API_URL}?action=getShopItems&lang=${currentLang}`) // Passa la lingua
         ]);
         const profileData = await profileRes.json();
         if (profileData?.status === 'success') userProfile = profileData.data;
@@ -74,14 +72,24 @@ async function loadInitialData() {
     } catch (error) {
         console.error("Errore caricamento dati iniziali:", error);
     } finally {
-        // Ri-renderizza le sezioni con i dati caricati
         renderProfile();
         renderShop();
     }
 }
 
 async function sendDataToScript(data) {
-    // ... (invariata)
+    try {
+        const response = await fetch(BASE_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(data),
+            mode: 'cors'
+        });
+        return await response.json();
+    } catch (error) {
+        console.error(`Errore invio dati (Action: ${data.action}):`, error);
+        return { status: "error", message: error.message };
+    }
 }
 
 // --- FUNZIONI DI RENDERING UI ---
@@ -92,7 +100,16 @@ function renderAll() {
 }
 
 function showSection(sectionId) {
-    // ... (invariata)
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+    document.getElementById(sectionId)?.classList.add("active");
+    document.querySelectorAll(".btn-nav").forEach(btn => btn.classList.toggle("active", btn.dataset.section === sectionId));
+
+    switch (sectionId) {
+        case 'quiz': renderQuizPage(); break;
+        case 'tip': renderTipPage(); break;
+        case 'profile': renderProfile(); break;
+        case 'shop': renderShop(); break;
+    }
 }
 
 function renderQuizPage() {
@@ -106,11 +123,15 @@ function renderTipPage() {
 }
 
 function createPlayCard(containerId, titleKey, quizSheet) {
-    // ... (invariata)
+    const container = document.getElementById(containerId);
+    container.innerHTML = `<div class="game-card" id="play-card-${quizSheet}"><div class="game-title">${translations[currentLang][titleKey]}</div><button class="play-btn">${translations[currentLang].play}</button></div>`;
+    container.querySelector('.play-btn').addEventListener('click', (event) => playQuiz(quizSheet, event.target));
 }
 
 function renderProfile() {
-    // ... (invariata)
+    document.querySelector("#profile h2").textContent = translations[currentLang].profile;
+    document.getElementById("profile-user").textContent = `${translations[currentLang].user}: ${username}`;
+    document.getElementById("stars-count").textContent = userProfile.stars || translations[currentLang].noStars;
 }
 
 function renderShop() {
@@ -126,21 +147,20 @@ function renderShop() {
         const card = document.createElement("div");
         card.className = "prize-card";
         // Il titolo arriva già tradotto dal backend
-        card.innerHTML = `<div class="prize-title">${prize.title}</div><p>${translations[currentLang].prizeCost} ⭐ ${prize.cost}</p><button class="play-btn">${translations[currentLang].prizeReq}</button>`;
-        card.querySelector('.play-btn').addEventListener('click', (event) => requestPrize(prize.prize_id, prize.cost, event.target));
+        card.innerHTML = `<div class="prize-title">${prize.titolo}</div><p>${translations[currentLang].prizeCost} ⭐ ${prize.costo}</p><button class="play-btn">${translations[currentLang].prizeReq}</button>`;
+        card.querySelector('.play-btn').addEventListener('click', (event) => requestPrize(prize.id_premio, prize.costo, event.target));
         container.appendChild(card);
     });
 }
 
 async function requestPrize(prizeId, prizeCost, button) {
-    // ... (invariata)
+    // ... (invariata dalla versione precedente)
 }
 
 // --- LOGICA DEL QUIZ ---
 async function playQuiz(quizSheet, buttonElement) {
     document.getElementById(`play-card-${quizSheet}`)?.style.setProperty('display', 'none');
     
-    // Carica i dati del quiz per la lingua corrente
     try {
         await loadQuizData(quizSheet, buttonElement);
     } catch (e) {
@@ -148,7 +168,7 @@ async function playQuiz(quizSheet, buttonElement) {
         return;
     }
     
-    const questions = quizConfig.questions[quizSheet];
+    const questions = quizConfig.questions;
     if (!questions || questions.length === 0) {
         alert(translations[currentLang].quizDataMissing);
         document.getElementById(`play-card-${quizSheet}`)?.style.setProperty('display', 'flex');
@@ -169,14 +189,12 @@ async function loadQuizData(quizSheet, buttonElement) {
         buttonElement.disabled = true;
     }
     try {
-        // Passa la lingua corrente al backend
         const response = await fetch(`${BASE_API_URL}?action=getQuiz&quiz_name=${quizSheet}&lang=${currentLang}`);
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
         
-        // I dati arrivano già tradotti, li salviamo
-        quizConfig.questions[quizSheet] = result.data.questions;
-        quizConfig.titles[quizSheet] = result.data.title;
+        quizConfig.questions = result.data.questions;
+        quizConfig.title = result.data.title;
         quizConfig.prize = result.data.prize;
 
     } catch (error) {
@@ -192,7 +210,7 @@ async function loadQuizData(quizSheet, buttonElement) {
 }
 
 function showQuizQuestion() {
-    const questions = quizConfig.questions[quizState.currentQuizSheet];
+    const questions = quizConfig.questions;
     if (quizState.currentIndex >= questions.length) {
         return endQuizSequence();
     }
@@ -201,10 +219,10 @@ function showQuizQuestion() {
 
     const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
     const container = document.getElementById(containerId);
-    container.innerHTML = `<div class="quiz-container"><h3>${quizConfig.titles[quizState.currentQuizSheet] || "Quiz"}</h3><p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizConfig.prize}</p>${q.imageUrl ? `<img src="${IMAGE_BASE_URL}${q.imageUrl}" alt="Immagine Quiz" class="quiz-image">` : ''}<div id="quiz-timer" class="quiz-timer"></div><p><strong>${q.question}</strong></p><div id="quiz-answers" class="quiz-answers"></div><button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button></div>`;
+    container.innerHTML = `<div class="quiz-container"><h3>${quizConfig.title || "Quiz"}</h3><p><strong>${translations[currentLang].quizPrizeText}</strong> ${quizConfig.prize}</p>${q.url_immagine ? `<img src="${IMAGE_BASE_URL}${q.url_immagine}" alt="Immagine Quiz" class="quiz-image">` : ''}<div id="quiz-timer" class="quiz-timer"></div><p><strong>${q.domanda}</strong></p><div id="quiz-answers" class="quiz-answers"></div><button id="quiz-exit" class="play-btn">${translations[currentLang].quizExit}</button></div>`;
 
     const answersDiv = document.getElementById("quiz-answers");
-    q.answers.forEach((ans, i) => {
+    q.risposte.forEach((ans, i) => {
         const btn = document.createElement("button");
         btn.textContent = ans;
         btn.className = "btn-quiz";
@@ -216,7 +234,15 @@ function showQuizQuestion() {
     quizState.answeringAllowed = true;
     updateTimerUI();
     quizState.timer = setInterval(() => {
-        // ... (invariato)
+        quizState.timeLeft--;
+        updateTimerUI();
+        if (quizState.timeLeft <= 0) {
+            clearInterval(quizState.timer);
+            if (quizState.answeringAllowed) {
+                alert(translations[currentLang].quizTimeUp);
+                handleAnswer(-1); 
+            }
+        }
     }, 1000);
 }
 
@@ -225,8 +251,25 @@ function handleAnswer(selectedIndex) {
     quizState.answeringAllowed = false;
     clearInterval(quizState.timer);
 
-    const q = quizConfig.questions[quizState.currentQuizSheet][quizState.currentIndex];
-    // ... (logica di gestione risposta invariata)
+    const q = quizConfig.questions[quizState.currentIndex];
+    const buttons = document.querySelectorAll("#quiz-answers button");
+    buttons.forEach(btn => btn.disabled = true);
+
+    const isCorrect = selectedIndex === q.indice_corretta;
+
+    if (isCorrect) {
+        quizState.score += q.punti || 0;
+        quizState.correctCount++;
+        buttons[selectedIndex].classList.add('btn-correct');
+    } else {
+        quizState.incorrectCount++;
+        if (selectedIndex !== -1) {
+            buttons[selectedIndex].classList.add('btn-wrong');
+        }
+        if (q.indice_corretta >= 0) {
+            buttons[q.indice_corretta].classList.add('btn-correct');
+        }
+    }
 
     setTimeout(() => {
         quizState.currentIndex++;
@@ -235,13 +278,66 @@ function handleAnswer(selectedIndex) {
 }
 
 async function endQuizSequence() {
-    // ... (invariata)
+    clearInterval(quizState.timer);
+    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
+    const container = document.getElementById(containerId);
+    container.innerHTML = `<div class="quiz-container"><h3>${translations[currentLang].quizFinish}</h3><p>Salvataggio e calcolo classifica...</p></div>`;
+
+    const questions = quizConfig.questions;
+    
+    const result = await sendDataToScript({
+        action: 'submitQuiz',
+        userId: telegramUserId,
+        username: username,
+        firstName: telegramFirstName,
+        lastName: telegramLastName,
+        quizName: quizState.currentQuizSheet,
+        score: quizState.score,
+        correctCount: quizState.correctCount,
+        incorrectCount: quizState.incorrectCount,
+        totalQuestions: questions.length
+    });
+
+    if (result.status === 'success') {
+        showQuizResult(result.data);
+    } else {
+        alert("Errore nel salvataggio del risultato: " + result.message);
+    }
 }
 
 function showQuizResult(backendData) {
-    // ... (invariata)
+    const containerId = quizState.currentQuizSheet === 'quiz' ? 'quiz-content' : 'tip-content';
+    const container = document.getElementById(containerId);
+
+    let rankChangeHtml = '';
+    if (backendData.rankChange === 'up') {
+        rankChangeHtml = '<span class="rank-up">▲</span>';
+    } else if (backendData.rankChange === 'down') {
+        rankChangeHtml = '<span class="rank-down">▼</span>';
+    } else {
+        rankChangeHtml = '<span class="rank-same">▬</span>';
+    }
+    
+    const questions = quizConfig.questions;
+
+    container.innerHTML = `
+        <div class="quiz-container result-summary">
+            <h3>${translations[currentLang].summaryTitle}</h3>
+            <p>${translations[currentLang].correctAnswers}: ${quizState.correctCount} / ${questions.length}</p>
+            <p>${translations[currentLang].wrongAnswers}: ${quizState.incorrectCount} / ${questions.length}</p>
+            <p><strong>${translations[currentLang].finalScore}: ${quizState.score} ${translations[currentLang].quizPoints}</strong></p>
+            <hr>
+            <p><strong>${translations[currentLang].leaderboardPosition}: ${backendData.newRank}° ${rankChangeHtml}</strong></p>
+            <button id="return-btn" class="play-btn">${translations[currentLang].quizExit}</button>
+        </div>
+    `;
+
+    const returnSection = quizState.currentQuizSheet;
+    document.getElementById('return-btn').addEventListener('click', () => showSection(returnSection));
+    quizState.currentQuizSheet = null;
 }
 
 function updateTimerUI() {
-    // ... (invariata)
+    const timerDiv = document.getElementById("quiz-timer");
+    if (timerDiv) timerDiv.textContent = `⏳ ${quizState.timeLeft}s`;
 }
