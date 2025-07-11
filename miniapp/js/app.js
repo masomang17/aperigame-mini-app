@@ -2,7 +2,7 @@
 const BASE_API_URL = 'https://script.google.com/macros/s/AKfycbz263cFtmATaZqWq2SWcSnb2a_TOW7sKAzyC-MavWV_IVNYUoc47JG18TuBSuKJJO6tVg/exec';
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/masomang17/aperigame-mini-app/main/miniapp/images/';
 
-// --- TRADUZIONI ---
+// --- TRADUZIONI (per l'interfaccia statica) ---
 const translations = {
     it: {
         quiz: "Quiz", pronostici: "Pronostici", profile: "Profilo", shop: "Negozio", play: "Gioca Ora",
@@ -14,28 +14,6 @@ const translations = {
         quizDataMissing: "Nessun quiz disponibile.", summaryTitle: "Riepilogo Partita",
         correctAnswers: "Corrette", wrongAnswers: "Errate", finalScore: "Punteggio",
         leaderboardPosition: "Classifica",
-    },
-    en: {
-        quiz: "Quiz", pronostici: "Predictions", profile: "Profile", shop: "Shop", play: "Play Now",
-        user: "User", noStars: "0", prizeReq: "Redeem", prizeCost: "Cost:",
-        notEnoughStars: "You don't have enough stars.", prizeSuccess: "Prize '{prizeTitle}' claimed!",
-        quizPrizeText: "Prize for the quiz: ", quizExit: "Exit", quizScore: "You scored",
-        quizPoints: "points", quizTimeUp: "Time's up!", quizFinish: "Quiz Finished!",
-        loadingQuiz: "Loading...", quizLoadError: "Error loading quiz.",
-        quizDataMissing: "No quiz available.", summaryTitle: "Match Summary",
-        correctAnswers: "Correct", wrongAnswers: "Wrong", finalScore: "Score",
-        leaderboardPosition: "Leaderboard",
-    },
-    es: {
-        quiz: "Quiz", pronostici: "Pronósticos", profile: "Perfil", shop: "Tienda", play: "Jugar Ahora",
-        user: "Usuario", noStars: "0", prizeReq: "Canjear", prizeCost: "Coste:",
-        notEnoughStars: "No tienes suficientes estrellas.", prizeSuccess: "¡Premio '{prizeTitle}' solicitado!",
-        quizPrizeText: "Premio para el quiz: ", quizExit: "Salir", quizScore: "Has conseguido",
-        quizPoints: "puntos", quizTimeUp: "¡Tiempo agotado!", quizFinish: "¡Fin del quiz!",
-        loadingQuiz: "Cargando...", quizLoadError: "Error al cargar el quiz.",
-        quizDataMissing: "Ningún quiz disponible.", summaryTitle: "Resumen del Partido",
-        correctAnswers: "Correctas", wrongAnswers: "Incorrectas", finalScore: "Puntuación",
-        leaderboardPosition: "Clasificación",
     }
 };
 
@@ -64,13 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("SDK non disponibile. Uso dati di test.");
         telegramUserId = "test_user_123"; username = "TestUser";
     }
-
     document.querySelectorAll(".btn-nav").forEach(btn => btn.addEventListener("click", () => showSection(btn.dataset.section)));
-    document.getElementById("lang-select").addEventListener("change", (e) => {
-        currentLang = e.target.value;
-        loadInitialData();
-    });
-
+    document.getElementById("lang-select").addEventListener("change", (e) => { currentLang = e.target.value; renderAllUI(); });
     loadInitialData();
 });
 
@@ -81,21 +54,16 @@ async function loadInitialData() {
     try {
         const [profileRes, shopRes] = await Promise.all([
             fetch(`${BASE_API_URL}?action=getProfile&userId=${telegramUserId}`),
-            fetch(`${BASE_API_URL}?action=getShopItems&lang=${currentLang}`)
+            fetch(`${BASE_API_URL}?action=getShopItems`)
         ]);
         const profileData = await profileRes.json();
-        if (profileData?.status === 'success') {
-            userProfile = profileData.data;
-        }
+        if (profileData.status === 'success') userProfile = profileData.data;
         const shopData = await shopRes.json();
-        if (shopData?.status === 'success') {
-            shopItems = shopData.data;
-        }
+        if (shopData.status === 'success') shopItems = shopData.data;
     } catch (error) {
         console.error("Errore caricamento dati:", error);
     } finally {
-        const activeSection = document.querySelector(".section.active")?.id || 'quiz';
-        showSection(activeSection);
+        showSection(document.querySelector(".section.active")?.id || 'quiz');
     }
 }
 
@@ -117,20 +85,14 @@ async function sendDataToScript(data) {
 // --- FUNZIONI DI RENDERING UI ---
 function renderAllUI() {
     document.querySelectorAll(".btn-nav").forEach(btn => {
-        const key = btn.dataset.section;
-        if (translations[currentLang]?.[key]) {
-            btn.textContent = translations[currentLang][key];
-        }
+        btn.textContent = translations[currentLang]?.[btn.dataset.section] || btn.dataset.section;
     });
 }
 
 function showSection(sectionId) {
     document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-    const sectionElement = document.getElementById(sectionId);
-    if (sectionElement) sectionElement.classList.add("active");
-    
+    document.getElementById(sectionId)?.classList.add("active");
     document.querySelectorAll(".btn-nav").forEach(btn => btn.classList.toggle("active", btn.dataset.section === sectionId));
-    
     const renderMap = {
         quiz: renderQuizPage,
         pronostici: renderPronosticiPage,
@@ -223,7 +185,7 @@ async function loadQuizData(quizSheet, buttonElement) {
         buttonElement.disabled = true;
     }
     try {
-        const response = await fetch(`${BASE_API_URL}?action=getQuiz&quiz_name=${quizSheet}&lang=${currentLang}`);
+        const response = await fetch(`${BASE_API_URL}?action=getQuiz&quiz_name=${quizSheet}`);
         const result = await response.json();
         if (result.status !== 'success') throw new Error(result.message);
         Object.assign(quizConfig, { questions: result.data.questions, title: result.data.title, prize: result.data.prize });
